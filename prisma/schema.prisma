@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model branded_content {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                String   @db.VarChar(255)
+  content              String
+  image                String?  @db.VarChar
+  marketing_manager_id String   @db.Uuid
+  perfume_id           String   @db.Uuid
+  created_at           DateTime @default(now()) @db.Timestamp(6)
+  updated_at           DateTime @default(now()) @db.Timestamp(6)
+  user                 user     @relation(fields: [marketing_manager_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  perfume              perfume  @relation(fields: [perfume_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model end_customer_preference {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  preference_data String
+  end_customer_id String   @db.Uuid
+  perfume_id      String   @db.Uuid
+  created_at      DateTime @default(now()) @db.Timestamp(6)
+  updated_at      DateTime @default(now()) @db.Timestamp(6)
+  user            user     @relation(fields: [end_customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  perfume         perfume  @relation(fields: [perfume_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model organization {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  description String?  @db.VarChar
+  image       String?  @db.VarChar
+  name        String   @db.VarChar(255)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  user_id     String   @db.Uuid
+  tenant_id   String   @db.VarChar(255)
+  user        user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model perfume {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                    String                    @db.VarChar(255)
+  description             String?                   @db.VarChar
+  image                   String?                   @db.VarChar
+  designer_id             String                    @db.Uuid
+  created_at              DateTime                  @default(now()) @db.Timestamp(6)
+  updated_at              DateTime                  @default(now()) @db.Timestamp(6)
+  branded_content         branded_content[]
+  end_customer_preference end_customer_preference[]
+  user                    user                      @relation(fields: [designer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                   String                    @unique @db.VarChar(255)
+  firstName               String?                   @db.VarChar(255)
+  lastName                String?                   @db.VarChar(255)
+  roq_user_id             String                    @db.VarChar(255)
+  tenant_id               String                    @db.VarChar(255)
+  created_at              DateTime                  @default(now()) @db.Timestamp(6)
+  updated_at              DateTime                  @default(now()) @db.Timestamp(6)
+  branded_content         branded_content[]
+  end_customer_preference end_customer_preference[]
+  organization            organization[]
+  perfume                 perfume[]
+}
